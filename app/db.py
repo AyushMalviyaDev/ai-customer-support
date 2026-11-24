@@ -1,3 +1,4 @@
+import atexit
 from contextlib import contextmanager
 from typing import Generator
 import psycopg
@@ -32,8 +33,14 @@ def connect() -> Generator[psycopg.Connection, None, None]:
 def close_pool() -> None:
     global _pool
     if _pool is not None:
-        _pool.close()
+        try:
+            _pool.close(timeout=2.0)
+        except Exception:
+            pass
         _pool = None
+
+
+atexit.register(close_pool)
 
 
 def start_event(gmail_message_id: str) -> dict | None:
@@ -82,18 +89,90 @@ def upsert_ticket(gmail_thread_id: str, customer_email: str, subject: str) -> in
 
 
 def update_ticket(
-    ticket_id: int, status: str, category: str | None = None, proposed_action: str | None = None
+    ticket_id: int,
+    status: str,
+    category: str | None = None,
+    proposed_action: str | None = None,
+    draft_reply: str | None = None,
 ) -> None:
     with connect() as conn:
         conn.execute(
             """
             update tickets
             set status = %s, category = coalesce(%s, category),
-                proposed_action = %s, updated_at = now()
+                proposed_action = coalesce(%s, proposed_action),
+                draft_reply = coalesce(%s, draft_reply),
+                updated_at = now()
             where id = %s
             """,
-            (status, category, proposed_action, ticket_id),
+            (status, category, proposed_action, draft_reply, ticket_id),
         )
+
+
+def get_tickets(status: str | None = None, limit: int = 50) -> list[dict]:
+    """Retrieve tickets, optionally filtered by status ('open', 'answered', 'escalated')."""
+    with connect() as conn:
+        if status:
+            return conn.execute(
+                """
+                select id, gmail_thread_id, customer_email, subject, category,
+                       status, proposed_action, draft_reply, created_at, updated_at
+                from tickets
+                where status = %s
+                order by updated_at desc
+                limit %s
+                """,
+                (status, limit),
+            ).fetchall()
+        else:
+            return conn.execute(
+                """
+                select id, gmail_thread_id, customer_email, subject, category,
+                       status, proposed_action, draft_reply, created_at, updated_at
+                from tickets
+                order by updated_at desc
+                limit %s
+                """,
+                (limit,),
+            ).fetchall()
+
+
+def get_ticket_details(ticket_id: int) -> dict | None:
+    """Retrieve a single ticket along with its complete message history."""
+    with connect() as conn:
+        ticket = conn.execute(
+            "select * from tickets where id = %s",
+            (ticket_id,),
+        ).fetchone()
+        if not ticket:
+            return None
+        messages = conn.execute(
+            """
+            select id, gmail_message_id, direction, from_address, body, created_at
+            from messages
+            where ticket_id = %s
+            order by created_at asc
+            """,
+            (ticket_id,),
+        ).fetchall()
+        ticket["messages"] = messages
+        return ticket
+
+
+def get_stats() -> dict:
+    with connect() as conn:
+        total = conn.execute("select count(*) as count from tickets").fetchone()["count"]
+        escalated = conn.execute("select count(*) as count from tickets where status = 'escalated'").fetchone()["count"]
+        answered = conn.execute("select count(*) as count from tickets where status = 'answered'").fetchone()["count"]
+        events = conn.execute("select count(*) as count from events").fetchone()["count"]
+        return {
+            "total_tickets": total,
+            "escalated_tickets": escalated,
+            "answered_tickets": answered,
+            "total_events": events,
+        }
+
+
 
 
 def save_message(

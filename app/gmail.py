@@ -54,6 +54,12 @@ class Gmail:
             userId="me", id=message_id, body={"addLabelIds": [self.label_ids[name]]}
         ).execute()
 
+    def remove_label(self, message_id: str, name: str) -> None:
+        if name in self.label_ids:
+            self.users.messages().modify(
+                userId="me", id=message_id, body={"removeLabelIds": [self.label_ids[name]]}
+            ).execute()
+
     def is_escalated(self, thread: dict) -> bool:
         label_id = self.label_ids[ESCALATED_LABEL]
         return any(label_id in m.get("labelIds", []) for m in thread["messages"])

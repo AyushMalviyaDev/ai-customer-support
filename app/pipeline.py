@@ -59,7 +59,13 @@ def process(gmail: Gmail, message_id: str) -> tuple[str, dict]:
     db.save_message(ticket_id, sent["id"], "out", gmail.address, decision.reply)
     if decision.action == "escalate":
         gmail.add_label(message_id, ESCALATED_LABEL)
-        db.update_ticket(ticket_id, "escalated", decision.section, decision.proposed_action)
+        db.update_ticket(
+            ticket_id,
+            "escalated",
+            decision.section,
+            decision.proposed_action,
+            draft_reply=decision.reply,
+        )
     else:
         db.update_ticket(ticket_id, "answered", decision.section)
     return "processed", decision.model_dump()
