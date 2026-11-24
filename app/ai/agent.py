@@ -5,6 +5,7 @@ import re
 from pydantic_ai import Agent, ModelRetry, RunContext
 
 from app import db
+from app.ai.embeddings import get_embedding
 from app.ai.schemas import AgentReply
 from app.config import settings
 
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 INSTRUCTIONS = """
 You are the customer support agent for an office furniture and
-interior solutions company.
+interior solutions company (Shree Vishwakarma Furnitures).
 
 The company specializes in:
 - Office furniture and work tables
@@ -29,8 +30,8 @@ You write the answer to the latest customer message in the email thread.
 
 Steps:
 1. Call get_section for "brand-and-tone" and "escalation-rules".
-2. Call get_section for the section selected by the classifier.
-   Call list_sections if you need another section.
+2. Call get_section for the section selected by the classifier,
+   or call search_knowledge to semantically find specific details across the catalog.
 3. Answer only with facts from those sections.
    If they do not answer the question, set enough_information to false.
 4. For product enquiries, identify the furniture type, model,
@@ -95,6 +96,24 @@ def get_section(section: str) -> str:
         f"## {entry['title']}\n{entry['content']}"
         for entry in entries
     )
+
+
+@support_agent.tool_plain
+def search_knowledge(query: str) -> str:
+    """Perform semantic vector search on the knowledge base using natural language queries."""
+    logger.info("Tool call: search_knowledge(%r)", query)
+    try:
+        embedding = get_embedding(query)
+        matches = db.search_knowledge_base(embedding, limit=3)
+        if not matches:
+            return "No matching entries found."
+        return "\n\n".join(
+            f"## [{m['section']}] {m['title']}\n{m['content']}"
+            for m in matches
+        )
+    except Exception as e:
+        logger.warning("Semantic search failed: %s", e)
+        return "Search temporarily unavailable. Call get_section instead."
 
 
 @support_agent.output_validator

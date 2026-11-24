@@ -122,3 +122,49 @@ def get_section(section: str) -> list[dict]:
             "select title, content from knowledge_base where section = %s order by id",
             (section,),
         ).fetchall()
+
+
+def search_knowledge_base(
+    query_embedding: list[float], limit: int = 4, section: str | None = None
+) -> list[dict]:
+    """Perform approximate nearest-neighbor vector search using pgvector cosine distance."""
+    embedding_str = "[" + ",".join(str(x) for x in query_embedding) + "]"
+    with connect() as conn:
+        if section:
+            return conn.execute(
+                """
+                select id, section, title, content,
+                       1 - (embedding <=> %s::vector) as similarity
+                from knowledge_base
+                where section = %s and embedding is not null
+                order by embedding <=> %s::vector
+                limit %s
+                """,
+                (embedding_str, section, embedding_str, limit),
+            ).fetchall()
+        else:
+            return conn.execute(
+                """
+                select id, section, title, content,
+                       1 - (embedding <=> %s::vector) as similarity
+                from knowledge_base
+                where embedding is not null
+                order by embedding <=> %s::vector
+                limit %s
+                """,
+                (embedding_str, embedding_str, limit),
+            ).fetchall()
+
+
+def update_entry_embedding(section: str, title: str, embedding: list[float]) -> None:
+    embedding_str = "[" + ",".join(str(x) for x in embedding) + "]"
+    with connect() as conn:
+        conn.execute(
+            """
+            update knowledge_base
+            set embedding = %s::vector, updated_at = now()
+            where section = %s and title = %s
+            """,
+            (embedding_str, section, title),
+        )
+
