@@ -52,7 +52,8 @@ def process(gmail: Gmail, message_id: str) -> tuple[str, dict]:
         # A colleague owns this thread until they remove the needs-human label.
         return "skipped", {"reason": "thread is escalated"}
 
-    decision = decide(format_thread(thread, gmail.address), has_attachments(message))
+    attachments = gmail.get_attachments(message) if has_attachments(message) else []
+    decision = decide(format_thread(thread, gmail.address), attachments)
 
     sent = gmail.send_reply(message, decision.reply)
     db.save_message(ticket_id, sent["id"], "out", gmail.address, decision.reply)

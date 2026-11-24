@@ -8,6 +8,7 @@ dependencies = [
     "fastapi[standard]>=0.165.0",
     "google-api-python-client>=2.202.0",
     "google-auth>=2.63.1",
+    "psycopg-pool>=3.2.0",
     "psycopg[binary]>=3.3.9",
     "pydantic-ai-slim[anthropic,google]>=2.71.0",
     "pydantic-settings>=2.16.3",

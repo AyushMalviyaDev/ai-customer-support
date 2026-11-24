@@ -9,6 +9,7 @@ Section = Literal[
     "chairs-and-seating",
     "orders-and-installation",
     "brand-and-tone",
+    "escalation-rules",
     "other",
 ]
 
@@ -52,9 +53,8 @@ class Issue(BaseModel):
     ]
     order_number: str | None = None
     days_since_delivery: int | None = None
-    valve_checked: bool = Field(default=False, description="True when the valve check was done")
     part_numbers: list[str] = Field(
-        default_factory=list, description="Part numbers of damaged panels, e.g. HP-S3-04"
+        default_factory=list, description="Part numbers of damaged or defective parts, e.g. SV-CH-01"
     )
 
 

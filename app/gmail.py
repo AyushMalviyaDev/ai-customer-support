@@ -72,6 +72,46 @@ class Gmail:
             userId="me", body={"raw": raw, "threadId": message["threadId"]}
         ).execute()
 
+    def get_attachments(self, message: dict) -> list[dict]:
+        """Extract attachments from the message, downloading data if available."""
+        attachments = []
+        message_id = message["id"]
+
+        def walk(part: dict) -> None:
+            filename = part.get("filename", "")
+            body = part.get("body", {})
+            mime_type = part.get("mimeType", "")
+
+            if filename:
+                data_bytes = None
+                if "data" in body and body["data"]:
+                    data_bytes = base64.urlsafe_b64decode(body["data"])
+                elif "attachmentId" in body and body["attachmentId"]:
+                    try:
+                        att_res = (
+                            self.users.messages()
+                            .attachments()
+                            .get(userId="me", messageId=message_id, id=body["attachmentId"])
+                            .execute()
+                        )
+                        if raw_data := att_res.get("data"):
+                            data_bytes = base64.urlsafe_b64decode(raw_data)
+                    except Exception:
+                        pass
+
+                attachments.append({
+                    "filename": filename,
+                    "mime_type": mime_type,
+                    "data": data_bytes,
+                })
+
+            for subpart in part.get("parts", []):
+                walk(subpart)
+
+        walk(message.get("payload", {}))
+        return attachments
+
+
 
 def get_headers(message: dict) -> dict[str, str]:
     return {h["name"].lower(): h["value"] for h in message["payload"].get("headers", [])}
@@ -114,6 +154,6 @@ def format_thread(thread: dict, own_address: str) -> str:
     parts = [f"Subject: {first.get('subject', '')}"]
     for message in thread["messages"]:
         sender = get_headers(message).get("from", "")
-        role = "Harbor & Pine support" if own_address.lower() in sender.lower() else "Customer"
+        role = "Customer Support" if own_address.lower() in sender.lower() else "Customer"
         parts.append(f"{role} ({sender}):\n{strip_quoted(get_body(message))}")
     return "\n\n".join(parts)

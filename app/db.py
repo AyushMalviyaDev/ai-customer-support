@@ -1,12 +1,39 @@
+from contextlib import contextmanager
+from typing import Generator
 import psycopg
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
+from psycopg_pool import ConnectionPool
 
 from app.config import settings
 
+_pool: ConnectionPool | None = None
 
-def connect() -> psycopg.Connection:
-    return psycopg.connect(settings.database_url, autocommit=True, row_factory=dict_row)
+
+def get_pool() -> ConnectionPool:
+    global _pool
+    if _pool is None:
+        _pool = ConnectionPool(
+            conninfo=settings.database_url,
+            min_size=1,
+            max_size=10,
+            kwargs={"autocommit": True, "row_factory": dict_row},
+        )
+    return _pool
+
+
+@contextmanager
+def connect() -> Generator[psycopg.Connection, None, None]:
+    """Provide a connection from the connection pool."""
+    with get_pool().connection() as conn:
+        yield conn
+
+
+def close_pool() -> None:
+    global _pool
+    if _pool is not None:
+        _pool.close()
+        _pool = None
 
 
 def start_event(gmail_message_id: str) -> dict | None:
