@@ -8,3 +8,10 @@ wheels/
 
 # Virtual environments
 .venv
+
+
+.env
+credentials.json
+node_modules/
+dashboard/dist/
+
