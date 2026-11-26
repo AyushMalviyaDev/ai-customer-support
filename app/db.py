@@ -173,6 +173,20 @@ def get_stats() -> dict:
         }
 
 
+def delete_ticket(ticket_id: int) -> bool:
+    """Delete a single ticket and its associated messages."""
+    with connect() as conn:
+        res = conn.execute("delete from tickets where id = %s", (ticket_id,))
+        return res.rowcount > 0
+
+
+def clear_all_tickets() -> None:
+    """Clear all tickets, messages, and events history."""
+    with connect() as conn:
+        conn.execute("truncate table messages, tickets, events restart identity cascade;")
+
+
+
 
 
 def save_message(

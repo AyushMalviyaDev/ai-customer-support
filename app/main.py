@@ -131,6 +131,20 @@ def approve_ticket(ticket_id: int, req: ApproveDraftRequest) -> dict:
     return {"status": "success", "message": "Reply sent to customer and ticket resolved"}
 
 
+@app.delete("/api/tickets/{ticket_id}")
+def delete_single_ticket(ticket_id: int) -> dict:
+    success = db.delete_ticket(ticket_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return {"status": "success", "message": f"Ticket #{ticket_id} deleted"}
+
+
+@app.delete("/api/tickets")
+def clear_all_tickets_endpoint() -> dict:
+    db.clear_all_tickets()
+    return {"status": "success", "message": "All tickets and history cleared"}
+
+
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard() -> str:
     """Built-in Human-In-The-Loop Review Dashboard."""
@@ -168,7 +182,11 @@ def dashboard() -> str:
         <section class="md:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col h-[750px]">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="font-semibold text-slate-800">Review Queue</h2>
-                <button onclick="loadTickets()" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Refresh</button>
+                <div class="flex items-center gap-2">
+                    <button onclick="loadTickets()" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Refresh</button>
+                    <span class="text-slate-300">•</span>
+                    <button onclick="clearAllTickets()" class="text-xs text-rose-500 hover:text-rose-700 font-medium">Clear All</button>
+                </div>
             </div>
             <div class="flex gap-1 mb-3 bg-slate-100 p-1 rounded-lg text-xs">
                 <button onclick="setFilter('escalated')" id="tab-escalated" class="flex-1 py-1.5 rounded bg-white font-medium shadow-xs text-center text-slate-800">Needs Review</button>
@@ -194,6 +212,10 @@ def dashboard() -> str:
                         <h3 id="detail-subject" class="text-lg font-bold text-slate-900 leading-snug">Subject</h3>
                         <p id="detail-meta" class="text-xs text-slate-500 mt-1">From: user@example.com</p>
                     </div>
+                    <button onclick="deleteCurrentTicket()" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition flex items-center gap-1.5 shadow-2xs">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span>Delete Ticket</span>
+                    </button>
                 </div>
 
                 <div class="mb-4">
@@ -332,6 +354,44 @@ def dashboard() -> str:
             } finally {
                 btn.disabled = false;
                 btn.innerText = 'Approve & Dispatch Email';
+            }
+        }
+
+        async function deleteCurrentTicket() {
+            if (!selectedTicketId) return;
+            if (!confirm(`Delete ticket #${selectedTicketId}? This cannot be undone.`)) return;
+            try {
+                const res = await fetch(`/api/tickets/${selectedTicketId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    selectedTicketId = null;
+                    document.getElementById('ticket-empty').classList.remove('hidden');
+                    document.getElementById('ticket-detail').classList.add('hidden');
+                    loadTickets();
+                    fetchStats();
+                } else {
+                    alert('Failed to delete ticket');
+                }
+            } catch(e) {
+                alert('Error: ' + e);
+            }
+        }
+
+        async function clearAllTickets() {
+            if (!confirm('Are you sure you want to clear ALL tickets and customer history from the dashboard? This cannot be undone.')) return;
+            try {
+                const res = await fetch('/api/tickets', { method: 'DELETE' });
+                if (res.ok) {
+                    selectedTicketId = null;
+                    document.getElementById('ticket-empty').classList.remove('hidden');
+                    document.getElementById('ticket-detail').classList.add('hidden');
+                    loadTickets();
+                    fetchStats();
+                    alert('All tickets and history have been cleared!');
+                } else {
+                    alert('Failed to clear tickets');
+                }
+            } catch(e) {
+                alert('Error: ' + e);
             }
         }
 
