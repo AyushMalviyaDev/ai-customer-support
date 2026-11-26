@@ -1,0 +1,953 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Support Engineering | Technical Case Study</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #fff;
+            color: #111;
+        }
+
+        .mono { font-family: 'DM Mono', monospace; }
+
+        .sidebar {
+            width: 260px;
+            position: fixed;
+            inset: 0 auto 0 0;
+            background: #fafafa;
+            border-right: 1px solid #e5e5e5;
+            padding: 28px 18px;
+            overflow-y: auto;
+            z-index: 50;
+        }
+
+        .main {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 9px 12px;
+            margin: 2px 0;
+            border-radius: 5px;
+            color: #666;
+            font-size: 13px;
+            transition: .2s;
+        }
+
+        .nav-link:hover {
+            background: #eee;
+            color: #111;
+        }
+
+        .nav-link.active {
+            background: #eaeaea;
+            color: #111;
+            font-weight: 600;
+        }
+
+        .nav-heading {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #999;
+            margin: 25px 0 9px 12px;
+        }
+
+        .content {
+            max-width: 940px;
+            margin: auto;
+            padding: 65px 55px 100px;
+        }
+
+        .section {
+            padding: 65px 0;
+            border-bottom: 1px solid #e5e5e5;
+            scroll-margin-top: 30px;
+        }
+
+        .section:first-child { padding-top: 15px; }
+
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: 2px;
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .section-title {
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: -1.2px;
+            margin: 12px 0;
+        }
+
+        .description {
+            color: #666;
+            line-height: 1.9;
+            font-size: 14px;
+            max-width: 720px;
+        }
+
+        .card {
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 22px;
+            background: #fff;
+        }
+
+        .tag {
+            display: inline-block;
+            border: 1px solid #ddd;
+            padding: 5px 9px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #555;
+            margin: 3px;
+        }
+
+        .code {
+            background: #111;
+            color: #eee;
+            padding: 22px;
+            border-radius: 7px;
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            line-height: 2;
+            overflow-x: auto;
+        }
+
+        .diagram-box {
+            border: 1px solid #e5e5e5;
+            padding: 18px;
+            border-radius: 7px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            background: #fafafa;
+        }
+
+        .arrow {
+            text-align: center;
+            color: #999;
+            padding: 8px;
+        }
+
+        .screenshot {
+            min-height: 220px;
+            border: 1px dashed #ccc;
+            border-radius: 7px;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .screenshot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .mobile-toggle { display: none; }
+
+        @media(max-width: 800px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform .25s;
+            }
+
+            .sidebar.open { transform: translateX(0); }
+
+            .main { margin-left: 0; }
+
+            .content { padding: 80px 22px 60px; }
+
+            .mobile-toggle {
+                display: block;
+                position: fixed;
+                top: 12px;
+                left: 12px;
+                z-index: 60;
+                background: #111;
+                color: white;
+                padding: 10px 14px;
+                border-radius: 5px;
+            }
+
+            .section-title { font-size: 25px; }
+        }
+    </style>
+</head>
+
+<body>
+
+<button class="mobile-toggle" onclick="toggleSidebar()">☰ Menu</button>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+
+    <div class="mb-9">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-black text-white flex items-center justify-center font-bold rounded">
+                AS
+            </div>
+            <div>
+                <div class="font-bold text-sm">AI Support</div>
+                <div class="text-xs text-gray-500">Engineering Journal</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-heading">PROJECT</div>
+    <nav>
+        <a href="#overview" class="nav-link active">01. Overview</a>
+        <a href="#problem" class="nav-link">02. Problem Statement</a>
+        <a href="#features" class="nav-link">03. Key Features</a>
+    </nav>
+
+    <div class="nav-heading">ARCHITECTURE</div>
+    <nav>
+        <a href="#architecture" class="nav-link">04. System Architecture</a>
+        <a href="#ingestion" class="nav-link">05. Email Ingestion</a>
+        <a href="#vision" class="nav-link">06. Multimodal Vision</a>
+        <a href="#rag" class="nav-link">07. Knowledge Base & RAG</a>
+        <a href="#guardrails" class="nav-link">08. AI Guardrails</a>
+        <a href="#workflow" class="nav-link">09. Human Review</a>
+    </nav>
+
+    <div class="nav-heading">ENGINEERING</div>
+    <nav>
+        <a href="#database" class="nav-link">10. Database Design</a>
+        <a href="#processing" class="nav-link">11. Background Processing</a>
+        <a href="#concurrency" class="nav-link">12. Concurrency</a>
+        <a href="#optimization" class="nav-link">13. Optimization</a>
+    </nav>
+
+    <div class="nav-heading">DEMONSTRATION</div>
+    <nav>
+        <a href="#screenshots" class="nav-link">14. Screenshots</a>
+        <a href="#demo" class="nav-link">15. End-to-End Demo</a>
+        <a href="#stack" class="nav-link">16. Technology Stack</a>
+        <a href="#learnings" class="nav-link">17. Learnings</a>
+    </nav>
+
+    <div class="border-t border-gray-200 mt-8 pt-5">
+        <a href="/dashboard" class="nav-link font-semibold text-black">
+            ↗ Live Support Dashboard
+        </a>
+        <a href="/docs" class="nav-link">↗ API Documentation</a>
+    </div>
+
+    <div class="mt-8 text-xs text-gray-400 mono">
+        VERSION 1.0.0<br>
+        ENGINEERING CASE STUDY
+    </div>
+</aside>
+
+
+<!-- MAIN CONTENT -->
+<main class="main">
+<div class="content">
+
+    <!-- OVERVIEW -->
+    <section id="overview" class="section">
+        <div class="eyebrow">Engineering Case Study / 2026</div>
+
+        <h1 class="text-5xl font-extrabold tracking-tight mt-5 mb-5">
+            AI-Powered<br>Customer Support
+        </h1>
+
+        <p class="description text-base">
+            Building an intelligent customer support automation system
+            that processes incoming emails, understands customer-submitted
+            images, retrieves relevant product knowledge, and generates
+            context-aware responses with human approval.
+        </p>
+
+        <div class="flex flex-wrap gap-2 mt-7">
+            <span class="tag">Python</span>
+            <span class="tag">FastAPI</span>
+            <span class="tag">PostgreSQL</span>
+            <span class="tag">Supabase</span>
+            <span class="tag">Gemini AI</span>
+            <span class="tag">pgvector</span>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-10">
+            <div class="card">
+                <div class="text-2xl font-bold">AI</div>
+                <div class="text-xs text-gray-500 mt-2">Email Understanding</div>
+            </div>
+            <div class="card">
+                <div class="text-2xl font-bold">RAG</div>
+                <div class="text-xs text-gray-500 mt-2">Knowledge Retrieval</div>
+            </div>
+            <div class="card">
+                <div class="text-2xl font-bold">Vision</div>
+                <div class="text-xs text-gray-500 mt-2">Image Processing</div>
+            </div>
+            <div class="card">
+                <div class="text-2xl font-bold">HITL</div>
+                <div class="text-xs text-gray-500 mt-2">Human Approval</div>
+            </div>
+        </div>
+
+        <div class="mt-10 text-sm text-gray-500">
+            Designed and developed by <strong class="text-black">Ayush Malviya</strong>
+        </div>
+    </section>
+
+
+    <!-- PROBLEM -->
+    <section id="problem" class="section">
+        <div class="eyebrow">01 / Context</div>
+        <h2 class="section-title">The Problem</h2>
+
+        <p class="description">
+            Customer support teams in furniture and manufacturing
+            businesses receive repetitive emails regarding damaged
+            products, missing components, order issues, and replacement
+            requests.
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-4 mt-7">
+            <div class="card">
+                <h3 class="font-bold mb-3">Traditional Workflow</h3>
+                <ul class="text-sm text-gray-600 space-y-3">
+                    <li>— Manually reading incoming emails</li>
+                    <li>— Searching product documentation</li>
+                    <li>— Reviewing customer-submitted images</li>
+                    <li>— Writing individual responses</li>
+                    <li>— Tracking every support request</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3 class="font-bold mb-3">Engineering Objective</h3>
+                <ul class="text-sm text-gray-600 space-y-3">
+                    <li>— Automate email understanding</li>
+                    <li>— Extract information from images</li>
+                    <li>— Retrieve relevant product knowledge</li>
+                    <li>— Generate contextual responses</li>
+                    <li>— Preserve human decision-making</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- FEATURES -->
+    <section id="features" class="section">
+        <div class="eyebrow">02 / Capabilities</div>
+        <h2 class="section-title">Key Features</h2>
+
+        <div class="grid md:grid-cols-2 gap-4 mt-7">
+            <div class="card">
+                <div class="text-xl mb-3">01</div>
+                <h3 class="font-bold">Email Intelligence</h3>
+                <p class="description mt-2">Automatically ingests incoming customer emails and converts them into structured support tickets.</p>
+            </div>
+            <div class="card">
+                <div class="text-xl mb-3">02</div>
+                <h3 class="font-bold">Multimodal AI</h3>
+                <p class="description mt-2">Analyzes attached customer images to identify visible product damage.</p>
+            </div>
+            <div class="card">
+                <div class="text-xl mb-3">03</div>
+                <h3 class="font-bold">Contextual RAG</h3>
+                <p class="description mt-2">Retrieves relevant product information using vector similarity search.</p>
+            </div>
+            <div class="card">
+                <div class="text-xl mb-3">04</div>
+                <h3 class="font-bold">Human Approval</h3>
+                <p class="description mt-2">Allows support agents to review AI-generated responses before dispatch.</p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ARCHITECTURE -->
+    <section id="architecture" class="section">
+        <div class="eyebrow">03 / System Design</div>
+        <h2 class="section-title">System Architecture</h2>
+
+        <p class="description">
+            The application follows a pipeline-based architecture.
+            Each stage handles a specific responsibility, from email
+            ingestion to final response dispatch.
+        </p>
+
+        <div class="card mt-8">
+            <div class="space-y-2">
+                <div class="diagram-box">Gmail Inbox / Customer Email</div>
+                <div class="arrow">↓</div>
+                <div class="diagram-box">Email Ingestion & Parsing</div>
+                <div class="arrow">↓</div>
+                <div class="diagram-box">Attachment & Image Processing</div>
+                <div class="arrow">↓</div>
+                <div class="diagram-box">Gemini AI — Classification & Vision</div>
+                <div class="arrow">↓</div>
+                <div class="diagram-box">Supabase PostgreSQL + pgvector RAG</div>
+                <div class="arrow">↓</div>
+                <div class="diagram-box">AI Response Generation & Guardrails</div>
+                <div class="arrow">↓</div>
+                <div class="diagram-box">Human-in-the-Loop Review Dashboard</div>
+                <div class="arrow">↓</div>
+                <div class="diagram-box bg-black text-white border-black">Approved Email Dispatch</div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- INGESTION -->
+    <section id="ingestion" class="section">
+        <div class="eyebrow">04 / Pipeline</div>
+        <h2 class="section-title">Email Ingestion</h2>
+
+        <p class="description">
+            The Gmail integration periodically checks the configured
+            mailbox for new customer messages. Incoming messages are
+            parsed and converted into tickets and conversation records.
+        </p>
+
+        <div class="code mt-7">
+Gmail Inbox
+    ↓
+Fetch Recent Messages
+    ↓
+Extract Sender, Subject & Body
+    ↓
+Process Attachments
+    ↓
+Create / Update Ticket
+    ↓
+Persist in PostgreSQL
+        </div>
+
+        <div class="card mt-5">
+            <h3 class="font-bold">Important Engineering Considerations</h3>
+            <p class="description mt-2">
+                Email identifiers, message history, duplicate processing,
+                and reply detection must be handled carefully to maintain
+                consistent conversations.
+            </p>
+        </div>
+    </section>
+
+
+    <!-- VISION -->
+    <section id="vision" class="section">
+        <div class="eyebrow">05 / Multimodal AI</div>
+        <h2 class="section-title">Vision Processing</h2>
+
+        <p class="description">
+            Customers can attach photographs of damaged furniture.
+            Gemini Vision analyzes these images and extracts structured
+            information about visible product damage.
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-5 mt-8">
+            <div>
+                <div class="screenshot">
+                    <div class="text-4xl mb-3">▧</div>
+                    <div class="font-semibold text-sm">Customer Image</div>
+                    <div class="text-xs mt-2">Add actual damaged product screenshot</div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Figure 01 — Example customer-submitted image</p>
+            </div>
+
+            <div class="card">
+                <div class="mono text-xs text-gray-400 mb-4">STRUCTURED AI EXTRACTION</div>
+                <div class="code">
+{
+  "product": "Mesh Chair",
+  "damage": "Broken caster",
+  "severity": "Medium",
+  "confidence": 0.94
+}
+                </div>
+                <p class="text-xs text-gray-500 mt-3">
+                    Illustrative output. Actual fields depend on the implemented schema.
+                </p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- RAG -->
+    <section id="rag" class="section">
+        <div class="eyebrow">06 / Retrieval Augmented Generation</div>
+        <h2 class="section-title">Knowledge Base & RAG</h2>
+
+        <p class="description">
+            The system uses vector embeddings to retrieve relevant
+            product knowledge instead of relying entirely on the
+            language model's internal knowledge.
+        </p>
+
+        <div class="card mt-7">
+            <div class="space-y-3">
+                <div class="diagram-box">Product Catalog & Knowledge Documents</div>
+                <div class="arrow">↓</div>
+                <div class="diagram-box">Gemini Embedding Generation</div>
+                <div class="arrow">↓</div>
+                <div class="diagram-box">768-Dimensional Vector Representation</div>
+                <div class="arrow">↓</div>
+                <div class="diagram-box">Supabase pgvector Storage</div>
+                <div class="arrow">↓</div>
+                <div class="diagram-box">HNSW Similarity Search</div>
+                <div class="arrow">↓</div>
+                <div class="diagram-box">Relevant Context for LLM</div>
+            </div>
+        </div>
+
+        <div class="mt-6 code">
+-- Illustrative vector similarity query
+
+SELECT *
+FROM product_knowledge
+ORDER BY embedding <=> query_embedding
+LIMIT 5;
+        </div>
+        <p class="text-xs text-gray-500 mt-3">
+            Illustrative SQL. Adapt the table and column names to the actual schema.
+        </p>
+    </section>
+
+
+    <!-- GUARDRAILS -->
+    <section id="guardrails" class="section">
+        <div class="eyebrow">07 / Reliability</div>
+        <h2 class="section-title">AI Guardrails</h2>
+
+        <p class="description">
+            AI-generated content must be controlled before it reaches
+            customers. The system uses structured outputs, contextual
+            retrieval, and human approval to reduce unsupported claims.
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-4 mt-7">
+            <div class="card">
+                <h3 class="font-bold">Structured Extraction</h3>
+                <p class="description mt-2">Pydantic models validate expected AI response structures.</p>
+            </div>
+            <div class="card">
+                <h3 class="font-bold">Contextual Grounding</h3>
+                <p class="description mt-2">Retrieved product information supplies relevant context.</p>
+            </div>
+            <div class="card">
+                <h3 class="font-bold">Human Review</h3>
+                <p class="description mt-2">Agents retain control over customer-facing replies.</p>
+            </div>
+            <div class="card">
+                <h3 class="font-bold">Dispatch Controls</h3>
+                <p class="description mt-2">Only approved responses should enter the dispatch workflow.</p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- WORKFLOW -->
+    <section id="workflow" class="section">
+        <div class="eyebrow">08 / Human-in-the-Loop</div>
+        <h2 class="section-title">Human Review Workflow</h2>
+
+        <p class="description">
+            Rather than automatically sending every AI-generated reply,
+            the system provides a review interface where support agents
+            can inspect the conversation and approve or edit the draft.
+        </p>
+
+        <div class="code mt-7">
+Incoming Ticket
+      ↓
+AI Analysis
+      ↓
+Draft Response
+      ↓
+Agent Review
+      ↓
+Approve / Edit / Reject
+      ↓
+Email Dispatch
+        </div>
+
+        <a href="/dashboard" class="inline-block mt-7 bg-black text-white px-6 py-3 rounded text-sm font-semibold hover:bg-gray-800">
+            Open Live Dashboard ↗
+        </a>
+    </section>
+
+
+    <!-- DATABASE -->
+    <section id="database" class="section">
+        <div class="eyebrow">09 / Persistence</div>
+        <h2 class="section-title">Database Design</h2>
+
+        <p class="description">
+            PostgreSQL stores ticket information, messages, processing
+            events, and knowledge base records. Supabase provides the
+            managed database infrastructure.
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-4 mt-7">
+            <div class="card">
+                <div class="mono text-xs text-gray-400">TABLE 01</div>
+                <h3 class="font-bold mt-2">tickets</h3>
+                <p class="description mt-2">Customer support ticket metadata and status.</p>
+            </div>
+            <div class="card">
+                <div class="mono text-xs text-gray-400">TABLE 02</div>
+                <h3 class="font-bold mt-2">messages</h3>
+                <p class="description mt-2">Conversation messages and email history.</p>
+            </div>
+            <div class="card">
+                <div class="mono text-xs text-gray-400">TABLE 03</div>
+                <h3 class="font-bold mt-2">events</h3>
+                <p class="description mt-2">Processing and dispatch event tracking.</p>
+            </div>
+            <div class="card">
+                <div class="mono text-xs text-gray-400">VECTOR STORAGE</div>
+                <h3 class="font-bold mt-2">Knowledge Base</h3>
+                <p class="description mt-2">Product information and vector embeddings.</p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- PROCESSING -->
+    <section id="processing" class="section">
+        <div class="eyebrow">10 / Execution</div>
+        <h2 class="section-title">Background Processing</h2>
+
+        <p class="description">
+            Background polling and asynchronous processing allow
+            incoming email operations to run independently from
+            dashboard requests.
+        </p>
+
+        <div class="code mt-7">
+Application Startup
+       ↓
+FastAPI Lifespan
+       ↓
+Start Background Poller
+       ↓
+Check Gmail Periodically
+       ↓
+Process New Messages
+       ↓
+Persist Events
+        </div>
+    </section>
+
+
+    <!-- CONCURRENCY -->
+    <section id="concurrency" class="section">
+        <div class="eyebrow">11 / Data Integrity</div>
+        <h2 class="section-title">Concurrency & Transaction Safety</h2>
+
+        <p class="description">
+            Multiple workers or repeated processing attempts can
+            potentially claim the same event. Atomic database operations
+            help prevent duplicate processing and dispatch.
+        </p>
+
+        <div class="card mt-7">
+            <h3 class="font-bold mb-3">Engineering Principles</h3>
+            <ul class="text-sm text-gray-600 space-y-3">
+                <li>— Atomic event claiming</li>
+                <li>— Transaction boundaries</li>
+                <li>— Duplicate event prevention</li>
+                <li>— Consistent ticket state transitions</li>
+                <li>— Safe email dispatch handling</li>
+            </ul>
+        </div>
+    </section>
+
+
+    <!-- OPTIMIZATION -->
+    <section id="optimization" class="section">
+        <div class="eyebrow">12 / Performance</div>
+        <h2 class="section-title">Performance & Optimization</h2>
+
+        <div class="card mt-7">
+            <h3 class="font-bold">Database Connection Pooling</h3>
+            <p class="description mt-2">
+                Reusing PostgreSQL connections through psycopg-pool
+                reduces connection establishment overhead and avoids
+                repeatedly opening new connections.
+            </p>
+        </div>
+
+        <div class="card mt-4">
+            <h3 class="font-bold">Vector Indexing</h3>
+            <p class="description mt-2">
+                HNSW indexing enables efficient approximate nearest
+                neighbor searches for vector-based retrieval.
+            </p>
+        </div>
+
+        <div class="card mt-4">
+            <h3 class="font-bold">Email Loop Prevention</h3>
+            <p class="description mt-2">
+                RFC-related headers such as Auto-Submitted and
+                Precedence can help prevent automated replies from
+                being interpreted as new customer requests.
+            </p>
+        </div>
+    </section>
+
+
+    <!-- SCREENSHOTS -->
+    <section id="screenshots" class="section">
+        <div class="eyebrow">13 / Visual Documentation</div>
+        <h2 class="section-title">Application Screenshots</h2>
+
+        <p class="description">
+            A visual walkthrough of the actual application interface
+            and its major workflows.
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-5 mt-8">
+
+            <div>
+                <div class="screenshot">
+                    <span class="text-3xl">▣</span>
+                    <span class="font-semibold text-sm mt-3">Dashboard</span>
+                    <span class="text-xs mt-2">Replace with dashboard.png</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">01 — Support Dashboard</p>
+            </div>
+
+            <div>
+                <div class="screenshot">
+                    <span class="text-3xl">▣</span>
+                    <span class="font-semibold text-sm mt-3">Conversation View</span>
+                    <span class="text-xs mt-2">Replace with conversation.png</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">02 — Customer Conversation</p>
+            </div>
+
+            <div>
+                <div class="screenshot">
+                    <span class="text-3xl">▣</span>
+                    <span class="font-semibold text-sm mt-3">AI Draft Editor</span>
+                    <span class="text-xs mt-2">Replace with ai-draft.png</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">03 — AI Proposed Response</p>
+            </div>
+
+            <div>
+                <div class="screenshot">
+                    <span class="text-3xl">▣</span>
+                    <span class="font-semibold text-sm mt-3">API Documentation</span>
+                    <span class="text-xs mt-2">Replace with api-docs.png</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">04 — Swagger Documentation</p>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- DEMO -->
+    <section id="demo" class="section">
+        <div class="eyebrow">14 / Execution</div>
+        <h2 class="section-title">End-to-End Demonstration</h2>
+
+        <div class="space-y-5 mt-8">
+            <div class="flex gap-4">
+                <div class="mono text-sm text-gray-400">01</div>
+                <div>
+                    <h3 class="font-semibold">Customer sends an email</h3>
+                    <p class="description">A customer reports a damaged furniture product.</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="mono text-sm text-gray-400">02</div>
+                <div>
+                    <h3 class="font-semibold">System processes the email</h3>
+                    <p class="description">The poller retrieves the email and creates a support ticket.</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="mono text-sm text-gray-400">03</div>
+                <div>
+                    <h3 class="font-semibold">AI analyzes the request</h3>
+                    <p class="description">The system extracts relevant details and retrieves product knowledge.</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="mono text-sm text-gray-400">04</div>
+                <div>
+                    <h3 class="font-semibold">Agent reviews the response</h3>
+                    <p class="description">The generated draft is presented in the review dashboard.</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="mono text-sm text-gray-400">05</div>
+                <div>
+                    <h3 class="font-semibold">Approved response is dispatched</h3>
+                    <p class="description">The system sends the approved reply to the customer.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- STACK -->
+    <section id="stack" class="section">
+        <div class="eyebrow">15 / Implementation</div>
+        <h2 class="section-title">Technology Stack</h2>
+
+        <div class="card mt-7">
+            <div class="grid grid-cols-2 gap-y-7">
+                <div>
+                    <div class="text-xs text-gray-400 mono">BACKEND</div>
+                    <div class="font-semibold mt-2">Python</div>
+                    <div class="text-sm text-gray-500">FastAPI</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 mono">DATABASE</div>
+                    <div class="font-semibold mt-2">PostgreSQL</div>
+                    <div class="text-sm text-gray-500">Supabase</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 mono">AI / ML</div>
+                    <div class="font-semibold mt-2">Google Gemini</div>
+                    <div class="text-sm text-gray-500">Vision & Embeddings</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 mono">VECTOR SEARCH</div>
+                    <div class="font-semibold mt-2">pgvector</div>
+                    <div class="text-sm text-gray-500">HNSW Indexing</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 mono">EMAIL</div>
+                    <div class="font-semibold mt-2">Gmail API</div>
+                    <div class="text-sm text-gray-500">Email Integration</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 mono">DEPLOYMENT</div>
+                    <div class="font-semibold mt-2">Docker</div>
+                    <div class="text-sm text-gray-500">Render</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- LEARNINGS -->
+    <section id="learnings" class="section">
+        <div class="eyebrow">16 / Retrospective</div>
+        <h2 class="section-title">Engineering Decisions & Learnings</h2>
+
+        <p class="description">
+            Building this system required more than integrating an LLM.
+            It involved designing reliable workflows around external
+            APIs, database consistency, email delivery, and AI-generated
+            content.
+        </p>
+
+        <div class="space-y-4 mt-7">
+            <div class="card">
+                <h3 class="font-bold">Reliability over AI autonomy</h3>
+                <p class="description mt-2">Human approval provides a practical control point for customer-facing communication.</p>
+            </div>
+            <div class="card">
+                <h3 class="font-bold">Database correctness matters</h3>
+                <p class="description mt-2">Concurrency and duplicate processing must be considered in background workflows.</p>
+            </div>
+            <div class="card">
+                <h3 class="font-bold">Context improves AI responses</h3>
+                <p class="description mt-2">Retrieval-based context makes product-specific answers more grounded.</p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer class="pt-12 pb-10">
+        <div class="border border-gray-200 rounded-lg p-8 text-center">
+            <div class="eyebrow">Explore the application</div>
+            <h2 class="text-2xl font-bold mt-3">See the system in action.</h2>
+            <p class="text-sm text-gray-500 mt-3">
+                Explore the live support dashboard or inspect the API.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-3 mt-7">
+                <a href="/dashboard" class="bg-black text-white px-6 py-3 rounded text-sm font-semibold">
+                    Open Dashboard ↗
+                </a>
+                <a href="/docs" class="border border-gray-300 px-6 py-3 rounded text-sm font-semibold">
+                    API Documentation ↗
+                </a>
+            </div>
+        </div>
+
+        <div class="text-center text-xs text-gray-400 mt-8">
+            © 2026 Shree Vishwakarma Furnitures · Engineering Case Study
+            <br><br>
+            Built by Ayush Malviya
+        </div>
+    </footer>
+
+</div>
+</main>
+
+
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    const sections = document.querySelectorAll('main section[id]');
+    const links = document.querySelectorAll('.nav-link[href^="#"]');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                links.forEach(link => {
+                    link.classList.toggle(
+                        'active',
+                        link.getAttribute('href') === '#' + entry.target.id
+                    );
+                });
+            }
+        });
+    }, {
+        rootMargin: '-15% 0px -75% 0px'
+    });
+
+    sections.forEach(section => observer.observe(section));
+
+    links.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 800) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

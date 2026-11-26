@@ -1,10 +1,11 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
 from app import db
@@ -52,6 +53,23 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+TEMPLATES_DIR = Path(__file__).parent / "templates"
+
+
+@app.get("/", response_class=HTMLResponse)
+def index() -> RedirectResponse:
+    """Redirect root to the engineering case study / blog page."""
+    return RedirectResponse(url="/blog")
+
+
+@app.get("/blog", response_class=HTMLResponse)
+@app.get("/case-study", response_class=HTMLResponse)
+def get_blog() -> str:
+    """Engineering case study and behind-the-scenes architecture walkthrough."""
+    blog_file = TEMPLATES_DIR / "blog.html"
+    return blog_file.read_text(encoding="utf-8")
+
 
 
 @app.get("/health")
@@ -135,8 +153,13 @@ def dashboard() -> str:
                 <h1 class="text-xl font-bold tracking-tight">Shree Vishwakarma Furnitures</h1>
                 <p class="text-xs text-indigo-200">AI Support Agent • Human-In-The-Loop Console</p>
             </div>
-            <div id="stats" class="flex gap-4 text-sm font-medium">
-                <span class="bg-indigo-800/80 px-3 py-1.5 rounded-lg border border-indigo-700/50">Loading stats...</span>
+            <div class="flex items-center gap-3">
+                <a href="/blog" class="text-xs bg-indigo-800 hover:bg-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-700/60 text-indigo-100 font-semibold transition flex items-center gap-1.5">
+                    <span>📖 Architecture & Case Study</span>
+                </a>
+                <div id="stats" class="flex gap-4 text-sm font-medium">
+                    <span class="bg-indigo-800/80 px-3 py-1.5 rounded-lg border border-indigo-700/50">Loading stats...</span>
+                </div>
             </div>
         </div>
     </header>
