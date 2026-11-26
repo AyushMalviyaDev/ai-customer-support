@@ -11,8 +11,8 @@ class Settings(BaseSettings):
     google_refresh_token: str
     database_url: str
 
-    classifier_model: str = "google:gemini-flash-lite-latest"
-    agent_model: str = "google:gemini-flash-lite-latest"
+    classifier_model: str = "google:gemini-3.1-flash-lite"
+    agent_model: str = "google:gemini-3.1-flash-lite"
 
     poll_interval_seconds: int = 60
 
